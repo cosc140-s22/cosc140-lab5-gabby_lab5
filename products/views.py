@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Prefetch
 from .models import Product
-from .forms import ProductFilterForm
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from .forms import ProductFilterForm, ReviewForm
 
 def index(request):
     products = Product.objects.all().order_by('name')
@@ -17,4 +19,22 @@ def show(request, product_id):
     p = get_object_or_404(Product, pk=product_id)
     context = { 'product':p }
     return render(request, 'products/show.html', context)
-    
+
+@login_required
+def create_review(request, product_id):
+  p = get_object_or_404(Product, pk=product_id)
+  if request.method == 'POST':
+    form = ReviewForm(request.POST)
+    if form.is_valid():
+      p.review_set.create(stars=form.cleaned_data['stars'], review=form.cleaned_data['review'], user=request.user)
+      return redirect('show', p.id)
+    else:
+      form = ReviewForm()
+      p = get_object_or_404(Product, pk=product_id)
+      context = { 'product':p, 'form': form }
+      return render(request, 'products/review.html', context)
+  else:
+    form = ReviewForm()
+    p = get_object_or_404(Product, pk=product_id)
+    context = { 'product':p, 'form': form }
+    return render(request, 'products/review.html', context)
