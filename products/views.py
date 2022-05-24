@@ -29,12 +29,16 @@ def create_review(request, product_id):
       p.review_set.create(stars=form.cleaned_data['stars'], review=form.cleaned_data['review'], user=request.user)
       return redirect('show', p.id)
     else:
-      form = ReviewForm()
-      p = get_object_or_404(Product, pk=product_id)
+      # JS: just use the form object from above since it has error info
+      # from validation.  And avoid looking up p in database again since
+      # it was already done above.
+      # form = ReviewForm()
+      # p = get_object_or_404(Product, pk=product_id)
       context = { 'product':p, 'form': form }
       return render(request, 'products/review.html', context)
   else:
     form = ReviewForm()
-    p = get_object_or_404(Product, pk=product_id)
+    # JS: duplicated lookup
+    # p = get_object_or_404(Product, pk=product_id)
     context = { 'product':p, 'form': form }
     return render(request, 'products/review.html', context)
